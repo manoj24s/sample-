@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Billing App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            color: var(--dark);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .food-item {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .food-item:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .food-item.selected {
+            background-color: rgba(67, 97, 238, 0.1);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .category-tab {
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 30px;
+            margin: 0 5px;
+            transition: all 0.3s;
+        }
+        
+        .category-tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .bill-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        
+        .quantity-control {
+            display: flex;
+            align-items: center;
+        }
+        
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e9ecef;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quantity-btn:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .total-section {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .payment-option {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .payment-option:hover, .payment-option.selected {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .receipt {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .order-history-item {
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s;
+        }
+        
+        .order-history-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            margin: 0 auto 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .category-tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-utensils me-2"></i>christ
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active section-link" href="#" data-section="home"><i class="fas fa-home me-1"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link section-link" href="#" data-section="order-history"><i class="fas fa-history me-1"></i> Order History</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link section-link" href="#" data-section="profile"><i class="fas fa-user me-1"></i> Profile</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Home Section -->
+        <div id="home" class="section active">
+            <div class="row">
+                <!-- Food Menu Section -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card p-4">
+                        <h3 class="mb-4">Food Menu</h3>
+                        
+                        <!-- Category Tabs -->
+                        <div class="category-tabs d-flex mb-4">
+                            <div class="category-tab active" data-category="all">All Items</div>
+                            <div class="category-tab" data-category="breakfast">Breakfast</div>
+                            <div class="category-tab" data-category="lunch">Lunch</div>
+                            <div class="category-tab" data-category="dinner">Dinner</div>
+                            <div class="category-tab" data-category="snacks">Snacks</div>
+                        </div>
+                        
+                        <!-- Search Bar -->
+                        <div class="input-group mb-4">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" placeholder="Search for food items..." id="searchInput">
+                        </div>
+                        
+                        <!-- Food Items Grid -->
+                        <div class="row" id="foodItems">
+                            <!-- Food items will be dynamically loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Billing Section -->
+                <div class="col-lg-4">
+                    <div class="card p-4 mb-4">
+                        <h3 class="mb-4">Your Order</h3>
+                        
+                        <div id="orderItems" class="mb-3">
+                            <!-- Order items will appear here -->
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                                <p>Your cart is empty</p>
+                            </div>
+                        </div>
+                        
+                        <div class="total-section mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span id="subtotal">₹0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (5%):</span>
+                                <span id="tax">₹0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Discount:</span>
+                                <span id="discount">-₹0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span>Total:</span>
+                                <span id="total">₹0.00</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-light w-100 mb-3" id="applyCouponBtn">
+                            <i class="fas fa-tag me-2"></i>Apply Coupon
+                        </button>
+                        <button class="btn btn-primary w-100 py-2" id="checkoutBtn" disabled>
+                            <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
+                        </button>
+                    </div>
+                    
+                    <!-- Payment Options -->
+                    <div class="card p-4">
+                        <h5 class="mb-3">Payment Options</h5>
+                        <div class="payment-option mb-3 selected" data-method="upi">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-mobile-alt me-3 fs-4"></i>
+                                <div>
+                                    <h6 class="mb-0">UPI Payment</h6>
+                                    <small class="text-muted">Pay using UPI apps</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="payment-option mb-3" data-method="card">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-credit-card me-3 fs-4"></i>
+                                <div>
+                                    <h6 class="mb-0">Credit/Debit Card</h6>
+                                    <small class="text-muted">Pay using your card</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="payment-option" data-method="cash">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-money-bill-wave me-3 fs-4"></i>
+                                <div>
+                                    <h6 class="mb-0">Cash on Delivery</h6>
+                                    <small class="text-muted">Pay when you receive</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order History Section -->
+        <div id="order-history" class="section">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Order History</h3>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-primary active" data-filter="all">All Orders</button>
+                        <button class="btn btn-outline-primary" data-filter="completed">Completed</button>
+                        <button class="btn btn-outline-primary" data-filter="cancelled">Cancelled</button>
+                    </div>
+                </div>
+                
+                <div id="orderHistoryList">
+                    <!-- Order history items will be dynamically loaded here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Section -->
+        <div id="profile" class="section">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="card p-4 text-center">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h4 id="userName">Rahul Sharma</h4>
+                        <p class="text-muted">Computer Science Student</p>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" id="editProfileBtn">
+                                <i class="fas fa-edit me-2"></i>Edit Profile
+                            </button>
+                            <button class="btn btn-outline-primary" id="changePasswordBtn">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4 mt-4">
+                        <h5 class="mb-3">Preferences</h5>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                            <label class="form-check-label" for="emailNotifications">Email Notifications</label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="smsNotifications">
+                            <label class="form-check-label" for="smsNotifications">SMS Notifications</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="specialOffers" checked>
+                            <label class="form-check-label" for="specialOffers">Special Offers</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-8">
+                    <div class="card p-4">
+                        <h4 class="mb-4">Account Information</h4>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="profileName" value="Rahul Sharma">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="profileEmail" value="rahul.sharma@college.edu">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="profilePhone" value="+91 98765 43210">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Student ID</label>
+                                    <input type="text" class="form-control" id="profileStudentId" value="CS2021001" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" id="profileAddress" rows="3">Boys Hostel, Block B, Room 205</textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-primary" id="saveProfileBtn">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4 mt-4">
+                        <h4 class="mb-4">Loyalty Points</h4>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h2 class="text-primary mb-0">1,250</h2>
+                                <p class="text-muted">Available Points</p>
+                            </div>
+                            <div class="text-end">
+                                <p class="mb-1">Next Reward: 100 points</p>
+                                <div class="progress" style="height: 10px; width: 150px;">
+                                    <div class="progress-bar" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-primary w-100 mt-3">
+                            <i class="fas fa-gift me-2"></i>Redeem Points
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="modal fade" id="receiptModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Order Receipt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="receipt">
+                        <div class="text-center mb-4">
+                            <h4 class="text-primary">Campus Billing</h4>
+                            <p class="mb-0">College Cafeteria</p>
+                            <small>Order #CB2023045</small>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Date:</strong> <span id="receiptDate"></span>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong>Time:</strong> <span id="receiptTime"></span>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div id="receiptItems">
+                            <!-- Receipt items will appear here -->
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-8">
+                                <strong>Subtotal:</strong>
+                            </div>
+                            <div class="col-4 text-end">
+                                <span id="receiptSubtotal">₹0.00</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-8">
+                                <strong>Tax (5%):</strong>
+                            </div>
+                            <div class="col-4 text-end">
+                                <span id="receiptTax">₹0.00</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-8">
+                                <strong>Discount:</strong>
+                            </div>
+                            <div class="col-4 text-end">
+                                <span id="receiptDiscount">-₹0.00</span>
+                            </div>
+                        </div>
+                        <div class="row fw-bold fs-5 mt-2">
+                            <div class="col-8">
+                                <strong>Total:</strong>
+                            </div>
+                            <div class="col-4 text-end">
+                                <span id="receiptTotal">₹0.00</span>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="text-center mt-4">
+                            <p class="text-muted">Thank you for your order!</p>
+                            <button class="btn btn-primary me-2" id="printReceiptBtn">
+                                <i class="fas fa-print me-2"></i>Print Receipt
+                            </button>
+                            <button class="btn btn-outline-primary" id="shareReceiptBtn">
+                                <i class="fas fa-share-alt me-2"></i>Share
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample food data
+        const foodItems = [
+            { id: 1, name: "Masala Dosa", price: 60, category: "breakfast", image: "🥘", popular: true },
+            { id: 2, name: "Chicken Biryani", price: 180, category: "lunch", image: "🍛", popular: true },
+            { id: 3, name: "Veg Biryani", price: 120, category: "lunch", image: "🍚", popular: false },
+            { id: 4, name: "Idli Sambar", price: 40, category: "breakfast", image: "🫓", popular: true },
+            { id: 5, name: "Paneer Butter Masala", price: 160, category: "dinner", image: "🍛", popular: true },
+            { id: 6, name: "Chole Bhature", price: 80, category: "lunch", image: "🍛", popular: false },
+            { id: 7, name: "Pav Bhaji", price: 70, category: "snacks", image: "🍛", popular: true },
+            { id: 8, name: "Samosa", price: 20, category: "snacks", image: "🥟", popular: true },
+            { id: 9, name: "French Fries", price: 60, category: "snacks", image: "🍟", popular: false },
+            { id: 10, name: "Chicken Curry", price: 150, category: "dinner", image: "🍛", popular: true },
+            { id: 11, name: "Veg Fried Rice", price: 100, category: "dinner", image: "🍚", popular: false },
+            { id: 12, name: "Chicken Roll", price: 80, category: "snacks", image: "🌯", popular: true }
+        ];
+
+        // Sample order history data
+        const orderHistory = [
+            { id: 1001, date: "2023-10-15", items: ["Masala Dosa", "Idli Sambar"], total: 100, status: "completed" },
+            { id: 1002, date: "2023-10-12", items: ["Chicken Biryani", "Samosa"], total: 200, status: "completed" },
+            { id: 1003, date: "2023-10-10", items: ["Paneer Butter Masala", "Veg Fried Rice"], total: 260, status: "completed" },
+            { id: 1004, date: "2023-10-05", items: ["Chole Bhature", "French Fries"], total: 140, status: "cancelled" },
+            { id: 1005, date: "2023-10-01", items: ["Pav Bhaji", "Samosa"], total: 90, status: "completed" }
+        ];
+
+        // Current order
+        let currentOrder = [];
+        let selectedCategory = 'all';
+        let searchQuery = '';
+        let discount = 0;
+        let currentSection = 'home';
+
+        // DOM elements
+        const foodItemsContainer = document.getElementById('foodItems');
+        const orderItemsContainer = document.getElementById('orderItems');
+        const subtotalElement = document.getElementById('subtotal');
+        const taxElement = document.getElementById('tax');
+        const discountElement = document.getElementById('discount');
+        const totalElement = document.getElementById('total');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        const categoryTabs = document.querySelectorAll('.category-tab');
+        const searchInput = document.getElementById('searchInput');
+        const applyCouponBtn = document.getElementById('applyCouponBtn');
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        const sectionLinks = document.querySelectorAll('.section-link');
+        const sections = document.querySelectorAll('.section');
+        const orderHistoryList = document.getElementById('orderHistoryList');
+        const orderHistoryFilters = document.querySelectorAll('#order-history .btn-group button');
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
+        const editProfileBtn = document.getElementById('editProfileBtn');
+        const userName = document.getElementById('userName');
+
+        // Initialize the app
+        function init() {
+            renderFoodItems();
+            setupEventListeners();
+            updateOrderSummary();
+            renderOrderHistory();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Category tabs
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    categoryTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    selectedCategory = tab.getAttribute('data-category');
+                    renderFoodItems();
+                });
+            });
+
+            // Search input
+            searchInput.addEventListener('input', () => {
+                searchQuery = searchInput.value.toLowerCase();
+                renderFoodItems();
+            });
+
+            // Apply coupon button
+            applyCouponBtn.addEventListener('click', applyCoupon);
+
+            // Checkout button
+            checkoutBtn.addEventListener('click', showReceipt);
+
+            // Payment options
+            paymentOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    paymentOptions.forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                });
+            });
+
+            // Section navigation
+            sectionLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetSection = link.getAttribute('data-section');
+                    switchSection(targetSection);
+                    
+                    // Update active nav link
+                    sectionLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                });
+            });
+
+            // Order history filters
+            orderHistoryFilters.forEach(filter => {
+                filter.addEventListener('click', () => {
+                    orderHistoryFilters.forEach(f => f.classList.remove('active'));
+                    filter.classList.add('active');
+                    renderOrderHistory(filter.getAttribute('data-filter'));
+                });
+            });
+
+            // Save profile button
+            saveProfileBtn.addEventListener('click', saveProfile);
+
+            // Edit profile button
+            editProfileBtn.addEventListener('click', enableProfileEditing);
+
+            // Print receipt button
+            document.getElementById('printReceiptBtn').addEventListener('click', printReceipt);
+            
+            // Share receipt button
+            document.getElementById('shareReceiptBtn').addEventListener('click', shareReceipt);
+        }
+
+        // Switch between sections
+        function switchSection(sectionName) {
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.getElementById(sectionName).classList.add('active');
+            currentSection = sectionName;
+            
+            // If switching to order history, refresh it
+            if (sectionName === 'order-history') {
+                renderOrderHistory();
+            }
+        }
+
+        // Render food items based on category and search
+        function renderFoodItems() {
+            foodItemsContainer.innerHTML = '';
+            
+            const filteredItems = foodItems.filter(item => {
+                const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+                const matchesSearch = item.name.toLowerCase().includes(searchQuery);
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filteredItems.length === 0) {
+                foodItemsContainer.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No items found</h5>
+                        <p class="text-muted">Try changing your search or category</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'col-md-6 mb-3';
+                itemElement.innerHTML = `
+                    <div class="card food-item p-3 h-100" data-id="${item.id}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">${item.name}</h5>
+                                <p class="text-muted mb-2">${getCategoryName(item.category)}</p>
+                                <div class="d-flex align-items-center">
+                                    <span class="fs-4 me-2">${item.image}</span>
+                                    <h4 class="text-primary mb-0">₹${item.price}</h4>
+                                </div>
+                            </div>
+                            ${item.popular ? '<span class="badge bg-warning text-dark"><i class="fas fa-fire me-1"></i>Popular</span>' : ''}
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-primary btn-sm w-100 add-to-cart-btn">
+                                <i class="fas fa-plus me-1"></i>Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                foodItemsContainer.appendChild(itemElement);
+                
+                // Add event listener to the add to cart button
+                const addToCartBtn = itemElement.querySelector('.add-to-cart-btn');
+                addToCartBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    addToCart(item);
+                });
+            });
+        }
+
+        // Get category display name
+        function getCategoryName(category) {
+            const categories = {
+                breakfast: 'Breakfast',
+                lunch: 'Lunch',
+                dinner: 'Dinner',
+                snacks: 'Snacks'
+            };
+            return categories[category] || category;
+        }
+
+        // Add item to cart
+        function addToCart(item) {
+            const existingItem = currentOrder.find(orderItem => orderItem.id === item.id);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                currentOrder.push({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: 1,
+                    image: item.image
+                });
+            }
+            
+            updateOrderDisplay();
+            updateOrderSummary();
+            
+            // Show a quick notification
+            showNotification(`${item.name} added to cart!`);
+        }
+
+        // Update order display
+        function updateOrderDisplay() {
+            if (currentOrder.length === 0) {
+                orderItemsContainer.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                        <p>Your cart is empty</p>
+                    </div>
+                `;
+                checkoutBtn.disabled = true;
+                return;
+            }
+            
+            checkoutBtn.disabled = false;
+            
+            orderItemsContainer.innerHTML = '';
+            currentOrder.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'bill-item';
+                itemElement.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">${item.name}</h6>
+                            <small class="text-muted">₹${item.price} each</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="quantity-control me-3">
+                                <div class="quantity-btn decrease-quantity" data-id="${item.id}">
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                                <span class="mx-2">${item.quantity}</span>
+                                <div class="quantity-btn increase-quantity" data-id="${item.id}">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                            </div>
+                            <h6 class="mb-0">₹${item.price * item.quantity}</h6>
+                            <button class="btn btn-sm btn-outline-danger ms-3 remove-item" data-id="${item.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                orderItemsContainer.appendChild(itemElement);
+            });
+            
+            // Add event listeners for quantity controls
+            document.querySelectorAll('.decrease-quantity').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                    updateQuantity(id, -1);
+                });
+            });
+            
+            document.querySelectorAll('.increase-quantity').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                    updateQuantity(id, 1);
+                });
+            });
+            
+            document.querySelectorAll('.remove-item').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                    removeFromCart(id);
+                });
+            });
+        }
+
+        // Update item quantity
+        function updateQuantity(id, change) {
+            const item = currentOrder.find(orderItem => orderItem.id === id);
+            
+            if (item) {
+                item.quantity += change;
+                
+                if (item.quantity <= 0) {
+                    removeFromCart(id);
+                } else {
+                    updateOrderDisplay();
+                    updateOrderSummary();
+                }
+            }
+        }
+
+        // Remove item from cart
+        function removeFromCart(id) {
+            currentOrder = currentOrder.filter(item => item.id !== id);
+            updateOrderDisplay();
+            updateOrderSummary();
+            
+            // Show notification
+            const item = foodItems.find(food => food.id === id);
+            if (item) {
+                showNotification(`${item.name} removed from cart!`);
+            }
+        }
+
+        // Update order summary
+        function updateOrderSummary() {
+            const subtotal = currentOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.05;
+            const total = subtotal + tax - discount;
+            
+            subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
+            taxElement.textContent = `₹${tax.toFixed(2)}`;
+            discountElement.textContent = `-₹${discount.toFixed(2)}`;
+            totalElement.textContent = `₹${total.toFixed(2)}`;
+        }
+
+        // Apply coupon
+        function applyCoupon() {
+            // In a real app, you would validate the coupon code
+            discount = 20; // ₹20 discount for demo
+            updateOrderSummary();
+            showNotification('Coupon applied! ₹20 discount added.');
+        }
+
+        // Render order history
+        function renderOrderHistory(filter = 'all') {
+            orderHistoryList.innerHTML = '';
+            
+            const filteredOrders = orderHistory.filter(order => {
+                return filter === 'all' || order.status === filter;
+            });
+            
+            if (filteredOrders.length === 0) {
+                orderHistoryList.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No orders found</h5>
+                        <p class="text-muted">You don't have any ${filter !== 'all' ? filter : ''} orders yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredOrders.forEach(order => {
+                const orderElement = document.createElement('div');
+                orderElement.className = 'card order-history-item p-3 mb-3';
+                orderElement.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="mb-1">Order #${order.id}</h5>
+                            <p class="text-muted mb-2">${formatDate(order.date)}</p>
+                            <p class="mb-0">${order.items.join(', ')}</p>
+                        </div>
+                        <div class="text-end">
+                            <h4 class="text-primary mb-1">₹${order.total}</h4>
+                            <span class="badge ${order.status === 'completed' ? 'bg-success' : 'bg-danger'}">
+                                ${order.status === 'completed' ? 'Completed' : 'Cancelled'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                
+                orderHistoryList.appendChild(orderElement);
+            });
+        }
+
+        // Format date for display
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+
+        // Enable profile editing
+        function enableProfileEditing() {
+            const inputs = document.querySelectorAll('#profile input, #profile textarea');
+            inputs.forEach(input => {
+                if (input.id !== 'profileStudentId') {
+                    input.removeAttribute('readonly');
+                }
+            });
+            
+            showNotification('Profile editing enabled. Make your changes and click Save.');
+        }
+
+        // Save profile
+        function saveProfile() {
+            const name = document.getElementById('profileName').value;
+            const email = document.getElementById('profileEmail').value;
+            const phone = document.getElementById('profilePhone').value;
+            const address = document.getElementById('profileAddress').value;
+            
+            // Update the displayed name
+            userName.textContent = name;
+            
+            // In a real app, you would send this data to a server
+            showNotification('Profile updated successfully!');
+            
+            // Make fields read-only again
+            const inputs = document.querySelectorAll('#profile input, #profile textarea');
+            inputs.forEach(input => {
+                if (input.id !== 'profileStudentId') {
+                    input.setAttribute('readonly', true);
+                }
+            });
+        }
+
+        // Show receipt
+        function showReceipt() {
+            // Update receipt with current order details
+            const subtotal = currentOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.05;
+            const total = subtotal + tax - discount;
+            
+            document.getElementById('receiptSubtotal').textContent = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('receiptTax').textContent = `₹${tax.toFixed(2)}`;
+            document.getElementById('receiptDiscount').textContent = `-₹${discount.toFixed(2)}`;
+            document.getElementById('receiptTotal').textContent = `₹${total.toFixed(2)}`;
+            
+            // Set current date and time
+            const now = new Date();
+            document.getElementById('receiptDate').textContent = now.toLocaleDateString();
+            document.getElementById('receiptTime').textContent = now.toLocaleTimeString();
+            
+            // Add items to receipt
+            const receiptItemsContainer = document.getElementById('receiptItems');
+            receiptItemsContainer.innerHTML = '';
+            
+            currentOrder.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'row mb-2';
+                itemElement.innerHTML = `
+                    <div class="col-6">
+                        ${item.name} x${item.quantity}
+                    </div>
+                    <div class="col-6 text-end">
+                        ₹${(item.price * item.quantity).toFixed(2)}
+                    </div>
+                `;
+                receiptItemsContainer.appendChild(itemElement);
+            });
+            
+            // Add to order history
+            const newOrder = {
+                id: Math.floor(1000 + Math.random() * 9000),
+                date: now.toISOString().split('T')[0],
+                items: currentOrder.map(item => item.name),
+                total: total,
+                status: 'completed'
+            };
+            
+            orderHistory.unshift(newOrder);
+            
+            // Clear current order
+            currentOrder = [];
+            updateOrderDisplay();
+            updateOrderSummary();
+            discount = 0;
+            
+            // Show the modal
+            const receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'));
+            receiptModal.show();
+        }
+
+        // Print receipt
+        function printReceipt() {
+            window.print();
+        }
+
+        // Share receipt
+        function shareReceipt() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Campus Billing Receipt',
+                    text: 'Check out my order receipt from Campus Billing!',
+                    url: window.location.href
+                })
+                .then(() => console.log('Successful share'))
+                .catch((error) => console.log('Error sharing:', error));
+            } else {
+                showNotification('Web Share API not supported in your browser');
+            }
+        }
+
+        // Show notification
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-success position-fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '1050';
+            notification.style.minWidth = '250px';
+            notification.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
